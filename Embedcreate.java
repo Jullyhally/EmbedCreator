@@ -1,9 +1,7 @@
 package Main;
 
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
@@ -14,9 +12,9 @@ import net.dv8tion.jda.api.interactions.components.text.TextInput;
 import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
 import net.dv8tion.jda.api.interactions.modals.Modal;
 
-import java.util.Collection;
+import java.awt.*;
 
-public class Embedcreate extends ListenerAdapter {
+public class EmbedCreator extends ListenerAdapter {
 
     private EmbedBuilder mainembed = new EmbedBuilder();
     private StringSelectMenu mainSelectMen = StringSelectMenu.create("embedcreate")
@@ -27,7 +25,9 @@ public class Embedcreate extends ListenerAdapter {
             .addOption("Thumbnail", "thumbnail")
             .addOption("Banner", "banner")
             .addOption("Footer", "footer")
+            .addOption("Color", "color")
             .addOption("send-Embed", "send-embed")
+            .addOption("Close", "close","Schließe deine Auswahl!")
             .build();
 
 
@@ -37,12 +37,14 @@ public class Embedcreate extends ListenerAdapter {
         if (event.getName().equals("embedcreate")) {
 
 
-            mainembed.setTitle("**Dieses Embed wird duch das Selectmenu bearbeitet.**\n**Um es abzuschicken klicke auf send-Embed!**");
+            mainembed.setTitle("**Dieses Embed wird duch das Selectmenu bearbeitet.\n" +
+                    "Um es abzuschicken klicke auf send-Embed!**");
             mainembed.setColor(0x00B9FF);
 
 
 
-            event.replyEmbeds(mainembed.build()).addActionRow(mainSelectMen).queue();
+
+            event.replyEmbeds(mainembed.build()).addActionRow(mainSelectMen).setEphemeral(true).queue();
 
 
         }
@@ -133,13 +135,13 @@ public class Embedcreate extends ListenerAdapter {
 
                     case "banner":
 
-                        TextInput Image = TextInput.create("imagemodal", "banner", TextInputStyle.PARAGRAPH)
+                        TextInput Image = TextInput.create("imagemodal", "Banner", TextInputStyle.PARAGRAPH)
                                 .setPlaceholder("Schreibe den Link vom Banner")
                                 .setMinLength(0)
                                 .setMaxLength(200)
                                 .build();
 
-                        Modal ImageModal = Modal.create("ImageModal", "banner")
+                        Modal ImageModal = Modal.create("ImageModal", "Banner")
                                 .addActionRows(ActionRow.of(Image))
                                 .build();
 
@@ -162,11 +164,30 @@ public class Embedcreate extends ListenerAdapter {
                                 .build();
 
 
-                        Modal FooterModal = Modal.create("footericonModal", "Footer-Icon")
+                        Modal FooterModal = Modal.create("footericonModal", "Footer")
                                 .addActionRows(ActionRow.of(footer),ActionRow.of(footericon))
                                 .build();
 
                         event.replyModal(FooterModal).queue();
+
+                        break;
+
+
+                    case "color":
+
+                        TextInput Color = TextInput.create("color", "Color", TextInputStyle.PARAGRAPH)
+                                .setPlaceholder("0x... Dein Farbcode")
+                                .setMinLength(0)
+                                .setMaxLength(200)
+                                .build();
+
+
+
+                        Modal ColorModal = Modal.create("colorModal", "Embed-Color")
+                                .addActionRows(ActionRow.of(Color))
+                                .build();
+
+                        event.replyModal(ColorModal).queue();
 
                         break;
 
@@ -187,7 +208,14 @@ public class Embedcreate extends ListenerAdapter {
                         event.replyModal(ModalSendEmbed).queue();
 
                         break;
-                        
+
+
+                    case "close":
+
+                        event.deferEdit().queue();
+
+                        break;
+
 
 
 
@@ -248,19 +276,26 @@ public class Embedcreate extends ListenerAdapter {
 
         }
 
+
+        if (event.getModalId().equals("colorModal")) {
+            String color = event.getValue("color").getAsString();
+
+
+
+            event.editMessageEmbeds(mainembed.setColor(Color.decode(color)).build()).queue();
+
+        }
+
         if (event.getModalId().equals("SendEmbedmodal")) {
             String SendEmbed = event.getValue("Send-Embed").getAsString();
 
-           TextChannel channelID = event.getGuild().getTextChannelById(SendEmbed);
+            TextChannel channelID = event.getGuild().getTextChannelById(SendEmbed);
 
-           channelID.sendMessageEmbeds(mainembed.build()).queue();
-           event.deferEdit().queue();
+            channelID.sendMessageEmbeds(mainembed.build()).queue();
+            event.deferEdit().queue();
 
 
 
         }
     }
 }
-
-
-
